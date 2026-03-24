@@ -42,6 +42,7 @@ async function start() {
   const wss = new WebSocketServer({ server: app.server })
 
   wss.on('connection', async (ws, req) => {
+    app.log.info({ url: req.url }, 'ws connected')
     // pull docId and client info out of the url (/ws/:docId?name=&color=)
     const base = `http://localhost`
     const url = new URL(req.url ?? '/', base)
@@ -80,11 +81,13 @@ async function start() {
         return
       }
 
+      app.log.info({ type: msg.type }, 'ws message')
       if (msg.type === 'op' && msg.op) {
         try {
           await saveOp(docId, msg.op)
         } catch (err) {
           app.log.error(err, 'Failed to persist op')
+          ws.send(JSON.stringify({ type: 'error', message: 'failed to persist op' }))
         }
         // fan out to everyone else in the room
         broadcast(docId, { type: 'op', op: msg.op, siteId }, ws)

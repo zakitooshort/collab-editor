@@ -24,8 +24,8 @@ model Document {
   snapshot      Bytes?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
-  ownerId       String
-  owner         User           @relation("Owner", fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId       String?
+  owner         User?          @relation("Owner", fields: [ownerId], references: [id], onDelete: SetNull)
   collaborators Collaborator[]
   operations    Operation[]
 }
