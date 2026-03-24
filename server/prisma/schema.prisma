@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  name          String
+  passwordHash  String
+  createdAt     DateTime       @default(now())
+  documents     Document[]     @relation("Owner")
+  collaborations Collaborator[]
+  refreshTokens RefreshToken[]
+}
+
+model Document {
+  id            String         @id @default(cuid())
+  title         String         @default("Untitled")
+  snapshot      Bytes?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  ownerId       String
+  owner         User           @relation("Owner", fields: [ownerId], references: [id], onDelete: Cascade)
+  collaborators Collaborator[]
+  operations    Operation[]
+}
+
+model Operation {
+  id         String   @id @default(cuid())
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  data       Json
+  createdAt  DateTime @default(now())
+
+  @@index([documentId, createdAt])
+}
+
+model Collaborator {
+  id         String   @id @default(cuid())
+  userId     String
+  documentId String
+  role       Role     @default(VIEWER)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, documentId])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  EDITOR
+  VIEWER
+}
