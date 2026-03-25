@@ -1,7 +1,3 @@
-export type { NodeId, InsertOp, DeleteOp, Op } from './operations'
-export { nodeIdKey, nodeIdEqual, compareNodeIds } from './operations'
-export { RGADocument } from './crdt'
-
 export interface User {
   id: string
   email: string

@@ -22,7 +22,7 @@ export function UserList({ users, ownName, ownColor }: UserListProps) {
         </li>
         {users.map(user => (
           <li
-            key={user.siteId}
+            key={user.clientId}
             className="flex items-center gap-2 px-2 py-1.5 rounded-md"
           >
             <span

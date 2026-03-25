@@ -1,43 +1,33 @@
-import { useEffect } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import type { UseCollabDocResult } from '../hooks/useCollabDoc'
+import Collaboration from '@tiptap/extension-collaboration'
+import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
+import * as Y from 'yjs'
+import type { HocuspocusProvider } from '@hocuspocus/provider'
 
 interface EditorProps {
-  collab: UseCollabDocResult
+  ydoc: Y.Doc
+  provider: HocuspocusProvider | null
 }
 
-export function Editor({ collab }: EditorProps) {
+export function Editor({ ydoc, provider }: EditorProps) {
+  const name = sessionStorage.getItem('collab-name') ?? 'Anonymous'
+  const color = sessionStorage.getItem('collab-color') ?? '#3b82f6'
+
   const editor = useEditor({
-    extensions: [StarterKit],
-    content: '',
+    extensions: [
+      StarterKit.configure({ history: false }),
+      Collaboration.configure({ document: ydoc }),
+      ...(provider
+        ? [CollaborationCursor.configure({ provider, user: { name, color } })]
+        : []),
+    ],
     editorProps: {
       attributes: {
-        class:
-          'prose max-w-none focus:outline-none min-h-[60vh] px-4 py-3 text-gray-900',
+        class: 'prose max-w-none focus:outline-none min-h-[60vh] px-4 py-3 text-gray-900',
       },
     },
   })
-
-  // tell the collab hook about the editor once tiptap is ready
-  useEffect(() => {
-    if (!editor) return
-    collab.onEditorReady(editor)
-  }, [editor, collab])
-
-  // send cursor position when selection moves
-  useEffect(() => {
-    if (!editor) return
-    const handler = () => {
-      const { from } = editor.state.selection
-      // from is 1-based and includes node boundaries, -2 gives us the 0-based char index
-      const charIndex = from - 2
-      const afterId = charIndex >= 0 ? null : null // resolved in useCollabDoc
-      collab.sendCursor(afterId)
-    }
-    editor.on('selectionUpdate', handler)
-    return () => { editor.off('selectionUpdate', handler) }
-  }, [editor, collab])
 
   return (
     <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-200 overflow-auto">

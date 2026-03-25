@@ -27,17 +27,6 @@ model Document {
   ownerId       String?
   owner         User?          @relation("Owner", fields: [ownerId], references: [id], onDelete: SetNull)
   collaborators Collaborator[]
-  operations    Operation[]
-}
-
-model Operation {
-  id         String   @id @default(cuid())
-  documentId String
-  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  data       Json
-  createdAt  DateTime @default(now())
-
-  @@index([documentId, createdAt])
 }
 
 model Collaborator {
